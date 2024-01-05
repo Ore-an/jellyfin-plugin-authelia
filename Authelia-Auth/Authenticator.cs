@@ -80,10 +80,22 @@ namespace Jellyfin.Plugin.Authelia_Auth
                 {
                     throw new AuthenticationException("Invalid username or password.");
                 }
+                string authCookie = "";
+
+                // CookieHeaderValue cookie = Request.Headers.GetCookies("authelia_session").FirstOrDefault();
+                // if (cookie != null)
+                // {
+                //     sessionId = cookie["session-id"].Value;
+                // }
+
             }
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, "/api/verify"))
             {
+                string namePass = String.Format("{0}:{1}", username, password);
+                var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(namePass);
+                namePass = System.Convert.ToBase64String(plainTextBytes);
+                request.Headers.Add("Proxy-Authorization", "basic", namePass);
                 request.Headers.Add("X-Original-Url", config.JellyfinUrl);
                 request.Headers.Add("X-Forwarded-Method", "GET");
                 var accessResponse = await client.SendAsync(request);
